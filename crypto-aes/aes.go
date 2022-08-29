@@ -1,3 +1,5 @@
+//go:build go1.19
+
 package main
 
 import (
@@ -51,19 +53,19 @@ func dump(blk cipher.Block) (any, error) {
 		cipher = cipher.Field(0)
 	}
 	if cipher.Type().String() == "aes.aesCipher" {
-		enc := GetUnexportedField(cipher.Field(0)).([]uint32)
-		dec := GetUnexportedField(cipher.Field(1)).([]uint32)
+		enc := getUnexportedField(cipher.Field(0)).([]uint32)
+		dec := getUnexportedField(cipher.Field(1)).([]uint32)
 		return &aesCipher{enc, dec}, nil
 	}
 	return nil, fmt.Errorf("unsupported cipher type: %s", reflect.ValueOf(blk).Type().String())
 }
 
 // from https://stackoverflow.com/a/60598827
-func GetUnexportedField(field reflect.Value) interface{} {
+func getUnexportedField(field reflect.Value) interface{} {
 	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
 }
 
-func SetUnexportedField(field reflect.Value, value interface{}) {
+func setUnexportedField(field reflect.Value, value interface{}) {
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).
 		Elem().
 		Set(reflect.ValueOf(value))
